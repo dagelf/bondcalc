@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Honest Bond Calculator — Buy-to-let vs. Bitcoin, the full 10-year math</title>
+<meta name="description" content="A free buy-to-let bond repayment calculator that shows the complete 10-year cash-flow picture of a leveraged property purchase, compared honestly against DCA'ing the same cash flows into Bitcoin. No accounts, no backend, your assumptions.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%230b3d63'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3ER%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --navy: #0b3d63; --navy-dark: #082a46; --accent: #f7931a;
+    --bg: #f7f8fa; --card: #ffffff; --text: #1c2530; --muted: #5a6472; --border: #e2e6ea;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  header { background: var(--navy); color: #fff; padding: 1.25rem 1rem; }
+  header h1 { margin: 0; font-size: 1.35rem; }
+  header p { margin: .25rem 0 0; color: #cfe0ee; font-size: .9rem; }
+  .lang-switch { position: absolute; top: 1rem; right: 1rem; }
+  .lang-switch select { background: var(--navy-dark); color: #fff; border: 1px solid #2f5878; border-radius: 4px; padding: .25rem .4rem; }
+  main { max-width: 960px; margin: 0 auto; padding: 1rem; }
+  .hero { display: grid; grid-template-columns: 1fr; gap: .75rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  @media (min-width: 640px) { .hero { grid-template-columns: repeat(3, 1fr); } }
+  .field label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: .25rem; }
+  .field input, .field select { width: 100%; padding: .5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+  .results { margin-top: 1.25rem; }
+  .headline-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+  .stat .value { font-size: 1.9rem; font-weight: 700; color: var(--navy); }
+  .stat .label { color: var(--muted); font-size: .85rem; }
+  .kicker { margin: 1rem 0; padding: 1rem 1.25rem; background: #fff8ee; border: 1px solid #f0d9a8; border-radius: 10px; font-size: 1.15rem; font-weight: 600; color: var(--navy-dark); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-top: 1rem; }
+  .card h2 { margin: 0 0 .5rem; font-size: 1.05rem; }
+  .chart-controls { display: flex; justify-content: flex-end; gap: .5rem; align-items: center; font-size: .85rem; color: var(--muted); }
+  .chart-legend { display: flex; gap: 1rem; font-size: .8rem; color: var(--muted); margin-top: .5rem; flex-wrap: wrap; }
+  .chart-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: .35rem; vertical-align: middle; }
+  .pricing-line { font-size: .78rem; color: var(--muted); margin-top: .5rem; }
+  .waterfall-row { display: grid; grid-template-columns: 140px 1fr 90px; align-items: center; gap: .5rem; margin: .4rem 0; font-size: .85rem; }
+  .waterfall-bar { background: var(--navy); height: 14px; border-radius: 3px; min-width: 2px; }
+  .waterfall-value { text-align: right; color: var(--muted); }
+  details.drawer { margin-top: 1rem; }
+  details.drawer summary { cursor: pointer; font-weight: 600; padding: .75rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+  .drawer-grid { display: grid; grid-template-columns: 1fr; gap: .75rem; background: var(--card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; padding: 1rem; }
+  @media (min-width: 640px) { .drawer-grid { grid-template-columns: 1fr 1fr; } }
+  .drawer-grid .field small { display: block; color: var(--muted); font-size: .72rem; margin-top: .2rem; }
+  .btc-presets { display: flex; gap: .4rem; margin-top: .35rem; flex-wrap: wrap; }
+  .btc-presets button { font-size: .78rem; padding: .3rem .55rem; border: 1px solid var(--border); background: #fff; border-radius: 20px; cursor: pointer; }
+  .btc-presets button:hover { border-color: var(--accent); }
+  .checkbox-field { display: flex; align-items: center; gap: .5rem; }
+  .checkbox-field label { margin: 0; }
+  .share-row { display: flex; gap: .5rem; align-items: center; margin-top: 1rem; }
+  button.primary { background: var(--navy); color: #fff; border: none; padding: .55rem 1rem; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+  button.primary:hover { background: var(--navy-dark); }
+  #share-status { font-size: .8rem; color: var(--muted); }
+  footer { max-width: 960px; margin: 2rem auto 1rem; padding: 0 1rem; color: var(--muted); font-size: .8rem; text-align: center; }
+  footer a { color: var(--navy); }
+  .header-wrap { position: relative; }
+</style>
+</head>
+<body>
+<div class="header-wrap">
+  <header>
+    <h1 data-i18n="app.title">The Honest Bond Calculator</h1>
+    <p data-i18n="app.tagline">Buy-to-let vs. Bitcoin — the full 10-year cash-flow picture, your assumptions.</p>
+  </header>
+  <div class="lang-switch"><select id="lang-select" aria-label="Language"></select></div>
+</div>
+
+<main>
+  <section class="hero">
+    <div class="field">
+      <label for="propertyValue" data-i18n="hero.propertyPrice">Property price</label>
+      <input type="number" id="propertyValue" step="10000" min="0">
+    </div>
+    <div class="field">
+      <label for="depositPct" data-i18n="hero.depositPct">Deposit</label>
+      <input type="number" id="depositPct" step="0.01" min="0" max="1">
+    </div>
+    <div class="field">
+      <label for="rentMonthly0" data-i18n="hero.rentMonthly">Expected rent (monthly)</label>
+      <input type="number" id="rentMonthly0" step="500" min="0">
+    </div>
+  </section>
+
+  <section class="results">
+    <div class="headline-numbers">
+      <div class="stat">
+        <div class="value" id="re-irr">—</div>
+        <div class="label" data-i18n="results.reIrr">Property IRR</div>
+      </div>
+      <div class="stat">
+        <div class="value" id="btc-irr">—</div>
+        <div class="label" data-i18n="results.btcIrr">BTC-path IRR</div>
+      </div>
+    </div>
+
+    <div class="kicker" id="kicker"></div>
+
+    <div class="card">
+      <h2 data-i18n="chart.title">Net wealth over time</h2>
+      <div class="chart-controls">
+        <label class="checkbox-field"><input type="checkbox" id="log-scale"> <span data-i18n="chart.logScale">Log scale</span></label>
+      </div>
+      <div id="chart"></div>
+      <div class="pricing-line" id="pricing-line"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="waterfall-title"></h2>
+      <div id="waterfall"></div>
+    </div>
+
+    <details class="drawer">
+      <summary data-i18n="drawer.title">Assumptions</summary>
+      <div class="drawer-grid">
+        <div class="field">
+          <label for="bondRate" data-i18n="drawer.bondRate">Bond interest rate (p.a.)</label>
+          <input type="number" id="bondRate" step="0.0025" min="0" max="0.3">
+          <small>Default = SA prime rate, 10.5% as of Jul 2026 (SARB repo 7% + 3.5%). Source: resbank.co.za</small>
+        </div>
+        <div class="field">
+          <label for="bondTermYears" data-i18n="drawer.bondTerm">Bond term (years)</label>
+          <input type="number" id="bondTermYears" step="1" min="5" max="30">
+        </div>
+        <div class="field">
+          <label for="rentGrowth" data-i18n="drawer.rentGrowth">Rent growth (p.a.)</label>
+          <input type="number" id="rentGrowth" step="0.005" min="-0.1" max="0.3">
+        </div>
+        <div class="field">
+          <label for="vacancyRate" data-i18n="drawer.vacancyRate">Vacancy rate</label>
+          <input type="number" id="vacancyRate" step="0.01" min="0" max="0.5">
+        </div>
+        <div class="field">
+          <label for="ratesTaxesPct" data-i18n="drawer.ratesTaxesPct">Rates & taxes (% of value p.a.)</label>
+          <input type="number" id="ratesTaxesPct" step="0.001" min="0" max="0.05">
+        </div>
+        <div class="field">
+          <label for="maintenancePct" data-i18n="drawer.maintenancePct">Maintenance (% of value p.a.)</label>
+          <input type="number" id="maintenancePct" step="0.001" min="0" max="0.05">
+          <small>1.0% default — sinking-fund reality on SA sectional title runs higher, see methodology.</small>
+        </div>
+        <div class="field">
+          <label for="insurancePct" data-i18n="drawer.insurancePct">Insurance (% of value p.a.)</label>
+          <input type="number" id="insurancePct" step="0.0005" min="0" max="0.02">
+        </div>
+        <div class="field">
+          <label for="managementFeePct" data-i18n="drawer.managementFeePct">Management fee (% of rent)</label>
+          <input type="number" id="managementFeePct" step="0.01" min="0" max="0.2">
+        </div>
+        <div class="field">
+          <label for="marginalTaxRate" data-i18n="drawer.marginalTaxRate">Marginal income tax rate</label>
+          <input type="number" id="marginalTaxRate" step="0.01" min="0" max="0.45">
+        </div>
+        <div class="field">
+          <label for="metro" data-i18n="drawer.metro">Metro (sets default growth)</label>
+          <select id="metro"></select>
+        </div>
+        <div class="field">
+          <label for="propertyGrowth" data-i18n="drawer.propertyGrowth">Property price growth (p.a.)</label>
+          <input type="number" id="propertyGrowth" step="0.005" min="-0.2" max="0.3">
+        </div>
+        <div class="field checkbox-field">
+          <input type="checkbox" id="sectionalTitle">
+          <label for="sectionalTitle" data-i18n="drawer.sectionalTitle">Sectional title (levies apply)</label>
+        </div>
+        <div class="field">
+          <label for="levyMonthly" data-i18n="drawer.levyMonthly">Monthly levy</label>
+          <input type="number" id="levyMonthly" step="100" min="0">
+        </div>
+        <div class="field">
+          <label for="agentCommissionPct" data-i18n="drawer.agentCommissionPct">Agent commission on exit</label>
+          <input type="number" id="agentCommissionPct" step="0.005" min="0" max="0.15">
+        </div>
+        <div class="field">
+          <label for="moneyMarketRate" data-i18n="drawer.moneyMarketRate">Money-market rate (RE surplus)</label>
+          <input type="number" id="moneyMarketRate" step="0.0025" min="0" max="0.2">
+        </div>
+        <div class="field">
+          <label for="btcCagr" data-i18n="drawer.btcCagr">Bitcoin forward CAGR (p.a.)</label>
+          <input type="number" id="btcCagr" step="0.01" min="-0.5" max="1">
+          <div class="btc-presets">
+            <button type="button" data-btc-preset="bear" data-i18n="drawer.btcPreset.bear">Bear (0%)</button>
+            <button type="button" data-btc-preset="gold" data-i18n="drawer.btcPreset.gold">Gold-like (8%)</button>
+            <button type="button" data-btc-preset="half" data-i18n="drawer.btcPreset.half">Half of history (~25%)</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="btcExchangeFeePct" data-i18n="drawer.btcExchangeFeePct">Exchange fee per buy</label>
+          <input type="number" id="btcExchangeFeePct" step="0.0005" min="0" max="0.02">
+        </div>
+        <div class="field">
+          <label for="horizonYears" data-i18n="drawer.horizonYears">Horizon (years)</label>
+          <input type="number" id="horizonYears" step="1" min="1" max="30" value="10">
+        </div>
+        <div class="field checkbox-field">
+          <input type="checkbox" id="realTerms">
+          <label for="realTerms" data-i18n="drawer.realTerms">Show in real (CPI-adjusted) terms</label>
+        </div>
+        <div class="field">
+          <label for="cpiRate" data-i18n="drawer.cpiRate">Assumed CPI (p.a.)</label>
+          <input type="number" id="cpiRate" step="0.0025" min="0" max="0.2">
+        </div>
+      </div>
+    </details>
+
+    <div class="share-row">
+      <button class="primary" id="copy-link" data-i18n="share.copyLink">Copy link</button>
+      <span id="share-status"></span>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p data-i18n="footer.disclaimer">This is arithmetic, not advice. Assumptions are yours to change.</p>
+  <p><span data-i18n="footer.dataEffective">Data effective</span> <span id="data-effective-date"></span> · <a href="methodology.html" data-i18n="footer.methodology">Methodology & FAQ</a></p>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

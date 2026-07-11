@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Methodology & FAQ — The Honest Bond Calculator</title>
+<meta name="description" content="How the Honest Bond Calculator computes property vs. Bitcoin returns: every formula, tax table, and data source, plus answers to the five most common objections.">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 760px; margin: 0 auto; padding: 1.5rem; color: #1c2530; line-height: 1.6; background: #f7f8fa; }
+  h1 { color: #0b3d63; } h2 { color: #0b3d63; margin-top: 2rem; border-bottom: 1px solid #e2e6ea; padding-bottom: .25rem; }
+  code { background: #eef1f4; padding: .1rem .35rem; border-radius: 4px; font-size: .9em; }
+  a { color: #0b3d63; } .back { display: inline-block; margin-bottom: 1rem; }
+  table { border-collapse: collapse; width: 100%; margin: .75rem 0; font-size: .9rem; }
+  th, td { border: 1px solid #e2e6ea; padding: .4rem .6rem; text-align: left; }
+  .faq dt { font-weight: 600; margin-top: 1rem; } .faq dd { margin: .25rem 0 0; color: #333; }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">&larr; Back to the calculator</a>
+<h1>Methodology & FAQ</h1>
+<p>This page exists so every number in the calculator can be checked. If you find an error, it is arithmetic — point it out and it gets fixed.</p>
+
+<h2>The real estate leg</h2>
+<p>Monthly simulation over the chosen horizon (default 120 months). Inflows: rent, grown annually, reduced by vacancy. Outflows: bond repayment (standard amortization), rates &amp; taxes, maintenance, insurance, optional levies, management fee, and income tax on net rental at your marginal rate. Bond interest (not the capital repayment) is treated as tax-deductible against rental income, matching SARS practice for a genuine let property.</p>
+<p>Upfront capital = deposit + transfer duty + bond registration attorney fee + transfer attorney fee + bond initiation fee, all added at month 0.</p>
+<p>At exit: property sold at the compounded growth rate, less agent commission (default 5% + VAT) and capital gains tax, less the outstanding bond balance.</p>
+
+<h2>The Bitcoin leg</h2>
+<p>Starts with the identical month-0 capital. Every month, it invests <em>exactly</em> the real estate leg's net shortfall (bond + costs − net rent) — nothing more, nothing less. If the property is cash-positive in a given month, the Bitcoin leg invests R0 that month, and the property leg's surplus is banked at the money-market rate rather than vanishing. This symmetry rule is deliberate: neither leg is allowed a compounding advantage the other doesn't get. A 0.1% exchange fee applies per purchase. At exit, capital gains tax is applied using the same inclusion-rate method as the property leg — no favourable treatment either direction.</p>
+<p>The Bitcoin forward return is a slider you control. The default (20% p.a.) is set below Bitcoin's historical CAGR on purpose — the tool does not need Bitcoin to perform historically well to make its point. A 0% preset is provided specifically so the comparison survives with Bitcoin's future returns assumed to be nil.</p>
+
+<h2>The kicker row</h2>
+<p>"Even if Bitcoin returns 0%, this property needs ≥ X% p.a. price growth just to break even after all costs." X is solved numerically: it's the property price growth rate at which the property leg's own money-weighted return (XIRR) is exactly 0%. This calculation never references Bitcoin — it is pure carry-cost arithmetic, which is why it holds up even if you have no view on Bitcoin at all.</p>
+
+<h2>Data sources & effective dates</h2>
+<table>
+<tr><th>Item</th><th>Value / source</th></tr>
+<tr><td>Transfer duty brackets</td><td>SARS, effective 1 April 2026 (2026/27 tax year, unchanged from 2025/26) — <a href="https://www.sars.gov.za/tax-rates/transfer-duty/">sars.gov.za</a></td></tr>
+<tr><td>Income tax brackets</td><td>SARS, 2026/27 tax year (1 Mar 2026–28 Feb 2027) — <a href="https://www.sars.gov.za/tax-rates/income-tax/rates-of-tax-for-individuals/">sars.gov.za</a></td></tr>
+<tr><td>CGT inclusion rate</td><td>40% for individuals, R50,000 annual exclusion — <a href="https://www.sars.gov.za/tax-rates/income-tax/capital-gains-tax-cgt/">sars.gov.za</a></td></tr>
+<tr><td>Bond initiation fee cap</td><td>National Credit Act regulation 44</td></tr>
+<tr><td>Attorney/conveyancing fees</td><td>Indicative bands from typical Law Society guideline tariffs — the one line item in this model that is a lookup table rather than a closed-form calculation; actual quotes vary by firm</td></tr>
+<tr><td>SA prime rate default</td><td>10.5% (SARB repo 7% + 3.5%), as of July 2026 — <a href="https://www.resbank.co.za">resbank.co.za</a></td></tr>
+<tr><td>Metro property CAGR table</td><td>Placeholder pending a licensed FNB HPI / Lightstone feed — clearly labelled in the assumptions drawer, fully overridable</td></tr>
+<tr><td>BTC/ZAR live price</td><td>Fetched client-side from Luno or CoinGecko public APIs; falls back to a static monthly-refreshed value if both are unreachable — see <code>js/pricing.js</code></td></tr>
+</table>
+<p>Data effective date is shown in the calculator's footer. All tables live in <code>js/data.js</code> and are refreshed manually.</p>
+
+<h2>Frequently asked / objected</h2>
+<dl class="faq">
+  <dt>"You ignored the leverage benefit of gearing."</dt>
+  <dd>No — leverage is fully modeled. The bond, its interest, and its amortization are the largest single line items in the simulation. That's precisely what the carry-cost waterfall exposes: gearing cuts both ways, and the interest bill is usually the biggest number a buyer has never seen written down.</dd>
+  <dt>"Your Bitcoin default is unrealistic."</dt>
+  <dd>The default (20% p.a.) is set below Bitcoin's historical compound annual growth rate, and a 0% preset is one click away. The kicker row is true at 0% Bitcoin growth. If you think even 20% is too generous, set it to 0% and the property arithmetic still stands or falls on its own.</dd>
+  <dt>"Property has intangible benefits — you can live in it, borrow against it, control it."</dt>
+  <dd>True, and out of scope by design — this tool prices a buy-to-let investment, not a home. If you plan to live in the property, several assumptions (management fee, vacancy, income tax on rental) don't apply to you and should be zeroed out in the assumptions drawer.</dd>
+  <dt>"Your tax tables will go stale."</dt>
+  <dd>The effective date is stamped in the footer and this page. Data is refreshed manually on a monthly cadence via a small build script — see the source repository.</dd>
+  <dt>"This is financial advice."</dt>
+  <dd>It isn't. There is no recommendation anywhere in this tool — only arithmetic on assumptions you control. Speak to a licensed financial adviser before making a real decision.</dd>
+</dl>
+
+<p><a class="back" href="index.html">&larr; Back to the calculator</a></p>
+</body>
+</html>

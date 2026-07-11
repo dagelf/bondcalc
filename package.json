@@ -1,0 +1,10 @@
+{
+  "name": "honest-bond-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static, zero-dependency buy-to-let vs. Bitcoin cash-flow calculator.",
+  "scripts": {
+    "test": "node test/run.js"
+  }
+}
